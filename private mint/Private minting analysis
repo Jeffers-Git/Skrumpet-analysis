@@ -1,0 +1,65 @@
+with mint_data as
+(
+  select *
+  from monad.testnet.fact_event_logs
+  where contract_address = lower('0xE8F0635591190Fb626F9D13C49b60626561Ed145')
+  and topic_1 = lower('0x0000000000000000000000000000000000000000000000000000000000000000')
+  and block_timestamp >= '2025-02-19 16:00:00'
+),
+
+private_mint as
+(
+  select 
+    m.tx_hash,
+    m.contract_address AS nft_contract,
+    m.origin_from_address AS minter_wallet,
+    m.origin_to_address AS minting_contract,  
+    t.block_timestamp,
+    t.from_address,
+    t.to_address,
+    t.value as MON_value,
+    t.tx_fee as gas_fee,
+  from mint_data m
+  join monad.testnet.fact_transactions t
+    on m.tx_hash = t.tx_hash
+  where m.block_timestamp < '2025-02-20 15:59:00'
+  order by m.block_timestamp
+)
+
+SELECT 
+    gas_fee,
+    COUNT(DISTINCT minter_wallet) AS unique_minting_wallets,
+    COUNT(*) AS total_mints
+FROM private_mint
+GROUP BY gas_fee
+ORDER BY gas_fee DESC;
+
+-- select 
+--     m.tx_hash,
+--     m.contract_address AS nft_contract,
+--     m.origin_from_address AS minter_wallet,  
+--     m.origin_to_address AS minting_contract,  
+--     t.block_timestamp,
+--     t.from_address,
+--     t.to_address,
+--     t.value as MON_value,
+--     t.tx_fee as gas_fee
+-- from public_mint m
+-- join monad.testnet.fact_transactions t
+--   on m.tx_hash = t.tx_hash
+-- order by m.block_timestamp
+
+-- select count(*)
+-- from private_mint
+
+
+-- select *
+-- from monad.testnet.dim_contracts
+-- where address = lower('0xE8F0635591190Fb626F9D13C49b60626561Ed145')
+-- -- and tx_hash = '0xc1d50e35926038f454d2c9a491cd5bb3a321420bf1b79d4b3c75340cfa8fd6ee'
+-- and origin_from_address = lower('0xF668cc6cdE8ae8670d90400c32EfD78C8d6E243A')
+-- or topic_1 = lower('0x0000000000000000000000000F668cc6cdE8ae8670d90400c32EfD78C8d6E243A')
+
+-- select *
+-- from monad.testnet.fact_traces
+-- where tx_hash = lower('0xc1d50e35926038f454d2c9a491cd5bb3a321420bf1b79d4b3c75340cfa8fd6ee')
