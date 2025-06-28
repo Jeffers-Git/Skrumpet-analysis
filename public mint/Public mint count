@@ -1,0 +1,18 @@
+with mint_data as
+(
+  select *
+  from monad.testnet.fact_event_logs
+  where contract_address = lower('0xE8F0635591190Fb626F9D13C49b60626561Ed145')
+  and topic_1 = lower('0x0000000000000000000000000000000000000000000000000000000000000000')
+  and block_timestamp >= '2025-02-19 16:00:00'
+),
+
+public_mint as
+(
+  select *
+  from mint_data
+  where block_timestamp >= '2025-02-20 15:59:00'
+)
+
+select count(*)
+from public_mint
